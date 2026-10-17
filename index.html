@@ -1,0 +1,196 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Jornal Diário</title>
+<style>
+:root{
+  --fundo:#f4f6fb;--cartao:#ffffff;--texto:#1b1f2a;--secundario:#6a7185;--borda:#e3e7f0;
+  --destaque:#4f46e5;--destaque-suave:#eef0ff;--topo-1:#4f46e5;--topo-2:#7c3aed;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --fundo:#0f1117;--cartao:#181b26;--texto:#e8eaf2;--secundario:#9aa1b5;--borda:#2a2f3f;
+    --destaque:#8b86ff;--destaque-suave:#22233a;--topo-1:#312e81;--topo-2:#5b21b6;
+  }
+}
+:root[data-theme="dark"]{
+  --fundo:#0f1117;--cartao:#181b26;--texto:#e8eaf2;--secundario:#9aa1b5;--borda:#2a2f3f;
+  --destaque:#8b86ff;--destaque-suave:#22233a;--topo-1:#312e81;--topo-2:#5b21b6;
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--fundo);color:var(--texto);font-family:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;line-height:1.5}
+header{background:linear-gradient(135deg,var(--topo-1),var(--topo-2));color:#fff;padding:28px 20px 90px}
+header .wrap{max-width:1100px;margin:0 auto}
+header h1{margin:0;font-size:1.8rem;letter-spacing:.2px}
+header p{margin:4px 0 0;opacity:.85;font-size:.95rem}
+main{max-width:1100px;margin:-70px auto 0;padding:0 20px 48px}
+.painel{background:var(--cartao);border:1px solid var(--borda);border-radius:16px;padding:18px;box-shadow:0 10px 30px rgba(0,0,0,.08)}
+.linha-busca{display:flex;gap:10px;flex-wrap:wrap}
+.linha-busca input{flex:1 1 280px;font:inherit;padding:12px 14px;border:1px solid var(--borda);border-radius:10px;background:var(--fundo);color:var(--texto)}
+.linha-busca select,.linha-busca button{font:inherit;padding:12px 14px;border-radius:10px;border:1px solid var(--borda);background:var(--fundo);color:var(--texto);cursor:pointer}
+.linha-busca button{background:var(--destaque);border-color:var(--destaque);color:#fff;font-weight:600;padding:12px 22px}
+.rotulo{font-size:.78rem;text-transform:uppercase;letter-spacing:.08em;color:var(--secundario);margin:16px 0 8px}
+.chips{display:flex;flex-wrap:wrap;gap:8px}
+.chip{font:inherit;font-size:.9rem;padding:7px 14px;border-radius:999px;border:1px solid var(--borda);background:var(--fundo);color:var(--texto);cursor:pointer}
+.chip.ativo{background:var(--destaque);border-color:var(--destaque);color:#fff}
+#status{margin:20px 4px 4px;color:var(--secundario);font-size:.95rem;min-height:1.4em}
+#resultados{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:16px;margin-top:8px}
+.card{background:var(--cartao);border:1px solid var(--borda);border-radius:14px;padding:16px 18px;display:flex;flex-direction:column;gap:6px;transition:transform .15s,box-shadow .15s}
+.card:hover{transform:translateY(-2px);box-shadow:0 8px 22px rgba(0,0,0,.08)}
+.meta{margin:0;font-size:.78rem;color:var(--secundario)}
+.selo{display:inline-block;background:var(--destaque-suave);color:var(--destaque);border-radius:6px;padding:1px 8px;font-weight:600;margin-right:6px}
+.card h2{margin:2px 0;font-size:1.08rem;line-height:1.35}
+.card h2 a{color:var(--texto);text-decoration:none}
+.card h2 a:hover{color:var(--destaque)}
+.card p{margin:0;font-size:.92rem;color:var(--texto);opacity:.9}
+.original{font-size:.8rem!important;color:var(--secundario)!important;font-style:italic}
+.ler{margin-top:auto;padding-top:6px}
+.ler a{color:var(--destaque);font-size:.88rem;font-weight:600;text-decoration:none}
+@media (max-width:600px){header h1{font-size:1.5rem}main{padding:0 14px 32px}}
+</style>
+</head>
+<body>
+<header>
+  <div class="wrap">
+    <h1>Jornal Diário</h1>
+    <p>Notícias do mundo todo, por assunto e idioma</p>
+  </div>
+</header>
+
+<main>
+  <section class="painel">
+    <div class="linha-busca">
+      <input id="busca" type="search" placeholder="Pesquisar um assunto, ex.: inteligência artificial" autocomplete="off">
+      <select id="idioma" aria-label="Idioma"></select>
+      <button id="botao-buscar" type="button">Buscar</button>
+    </div>
+    <div class="rotulo">Nicho</div>
+    <div id="nichos" class="chips"></div>
+  </section>
+
+  <div id="status"></div>
+  <div id="resultados"></div>
+</main>
+
+<script>
+const estado = { nicho: "todos", nomesNichos: {} };
+const $ = (seletor) => document.querySelector(seletor);
+
+function el(tag, classe, texto) {
+  const e = document.createElement(tag);
+  if (classe) e.className = classe;
+  if (texto !== undefined) e.textContent = texto;
+  return e;
+}
+
+function marcarChip(nicho) {
+  estado.nicho = nicho;
+  document.querySelectorAll(".chip").forEach((c) => c.classList.toggle("ativo", c.dataset.nicho === nicho));
+}
+
+function criarChip(nicho, rotulo) {
+  const botao = el("button", "chip", rotulo);
+  botao.type = "button";
+  botao.dataset.nicho = nicho;
+  botao.addEventListener("click", () => {
+    marcarChip(nicho);
+    buscar();
+  });
+  $("#nichos").append(botao);
+}
+
+async function carregarConfig() {
+  const config = await (await fetch("/api/config")).json();
+  estado.nomesNichos = config.nichos;
+
+  criarChip("todos", "Todos");
+  for (const [chave, rotulo] of Object.entries(config.nichos)) criarChip(chave, rotulo);
+  marcarChip("todos");
+
+  const seletor = $("#idioma");
+  for (const [codigo, rotulo] of Object.entries(config.idiomas)) seletor.add(new Option(rotulo, codigo));
+  seletor.value = "pt";
+}
+
+function cartao(n) {
+  const artigo = el("article", "card");
+
+  const nicho = estado.nomesNichos[n.nicho] || n.nicho;
+  const meta = el("p", "meta");
+  meta.append(el("span", "selo", nicho), `${n.fonte} · ${n.data}`);
+  artigo.append(meta);
+
+  const titulo = el("h2");
+  const link = el("a", null, n.titulo);
+  link.href = /^https?:\/\//.test(n.link) ? n.link : "#";
+  link.target = "_blank";
+  link.rel = "noopener";
+  titulo.append(link);
+  artigo.append(titulo);
+
+  if (n.resumo) artigo.append(el("p", null, n.resumo));
+  if (n.tituloOriginal) artigo.append(el("p", "original", `Título original: ${n.tituloOriginal}`));
+
+  const rodape = el("div", "ler");
+  const ler = el("a", null, "Ler matéria completa →");
+  ler.href = link.href;
+  ler.target = "_blank";
+  ler.rel = "noopener";
+  rodape.append(ler);
+  artigo.append(rodape);
+
+  return artigo;
+}
+
+async function buscar() {
+  const parametros = new URLSearchParams({
+    nicho: estado.nicho,
+    busca: $("#busca").value.trim(),
+    idioma: $("#idioma").value,
+  });
+  const status = $("#status");
+  const resultados = $("#resultados");
+  status.textContent = "Buscando e traduzindo… isso pode levar alguns segundos.";
+  resultados.replaceChildren();
+  $("#botao-buscar").disabled = true;
+
+  try {
+    const resposta = await fetch("/api/noticias?" + parametros);
+    const dados = await resposta.json();
+    if (!resposta.ok) throw new Error(dados.erro || "erro desconhecido");
+
+    if (dados.length === 0) {
+      status.textContent = "Nenhuma notícia encontrada. Tente outro termo ou outro nicho.";
+      return;
+    }
+    status.textContent = `${dados.length} notícia(s) encontrada(s)`;
+    resultados.replaceChildren(...dados.map(cartao));
+  } catch (erro) {
+    status.textContent = "Não consegui buscar: " + erro.message;
+  } finally {
+    $("#botao-buscar").disabled = false;
+  }
+}
+
+let temporizador;
+$("#busca").addEventListener("input", () => {
+  clearTimeout(temporizador);
+  temporizador = setTimeout(buscar, 700);
+});
+$("#busca").addEventListener("keydown", (e) => {
+  if (e.key === "Enter") {
+    clearTimeout(temporizador);
+    buscar();
+  }
+});
+$("#botao-buscar").addEventListener("click", buscar);
+$("#idioma").addEventListener("change", buscar);
+
+carregarConfig().then(buscar).catch((erro) => {
+  $("#status").textContent = "Não consegui carregar o painel: " + erro.message;
+});
+</script>
+</body>
+</html>
