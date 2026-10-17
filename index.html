@@ -4,6 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Jornal Diário</title>
+<link rel="icon" href="data:,">
 <style>
 :root{
   --fundo:#f4f6fb;--cartao:#ffffff;--texto:#1b1f2a;--secundario:#6a7185;--borda:#e3e7f0;
@@ -144,7 +145,11 @@ function cartao(n) {
   return artigo;
 }
 
+let ultimaBusca = 0;
+
 async function buscar() {
+  // Só a última busca pedida pode atualizar a tela; respostas antigas são descartadas.
+  const minha = ++ultimaBusca;
   const parametros = new URLSearchParams({
     nicho: estado.nicho,
     busca: $("#busca").value.trim(),
@@ -159,6 +164,7 @@ async function buscar() {
   try {
     const resposta = await fetch("/api/noticias?" + parametros);
     const dados = await resposta.json();
+    if (minha !== ultimaBusca) return;
     if (!resposta.ok) throw new Error(dados.erro || "erro desconhecido");
 
     if (dados.length === 0) {
@@ -168,9 +174,9 @@ async function buscar() {
     status.textContent = `${dados.length} notícia(s) encontrada(s)`;
     resultados.replaceChildren(...dados.map(cartao));
   } catch (erro) {
-    status.textContent = "Não consegui buscar: " + erro.message;
+    if (minha === ultimaBusca) status.textContent = "Não consegui buscar: " + erro.message;
   } finally {
-    $("#botao-buscar").disabled = false;
+    if (minha === ultimaBusca) $("#botao-buscar").disabled = false;
   }
 }
 

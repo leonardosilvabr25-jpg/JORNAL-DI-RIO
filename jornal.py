@@ -93,6 +93,7 @@ def limpar(texto, limite=400):
         return ""
     sem_tags = re.sub(r"<[^>]+>", " ", texto)
     limpo = re.sub(r"\s+", " ", html.unescape(sem_tags)).strip()
+    limpo = re.sub(r"\s*Leia mais.*$", "", limpo)
     return limpo[:limite] + ("…" if len(limpo) > limite else "")
 
 

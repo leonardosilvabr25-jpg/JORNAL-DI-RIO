@@ -6,6 +6,7 @@ import socket
 import threading
 import time
 import webbrowser
+from concurrent.futures import ThreadPoolExecutor
 from datetime import datetime, timezone
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from urllib.parse import parse_qs, urlparse
@@ -46,7 +47,9 @@ def noticias_do_nicho(nicho):
 def buscar(nicho, termo, idioma):
     feeds = feeds_configurados()
     nichos = list(feeds) if nicho == "todos" else [nicho]
-    noticias = [item for nc in nichos for item in noticias_do_nicho(nc)]
+    with ThreadPoolExecutor(max_workers=len(nichos)) as pool:
+        listas = list(pool.map(noticias_do_nicho, nichos))
+    noticias = [item for lista in listas for item in lista]
 
     if termo:
         procurado = termo.lower()
