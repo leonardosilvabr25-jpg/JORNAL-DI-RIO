@@ -6,6 +6,7 @@ import hashlib
 import html
 import json
 import re
+import time
 import urllib.request
 import xml.etree.ElementTree as ET
 from datetime import datetime, timezone
@@ -135,28 +136,50 @@ def ler_feed(url):
     return noticias
 
 
+PAUSA_ENTRE_PEDIDOS = 0.3  # o Google aceita cerca de 5 pedidos por segundo
+TENTATIVAS = 3
+FALHAS_PARA_DESISTIR = 5
+
+
 class Tradutor:
     def __init__(self, destino):
         self.destino = destino
+        self.cliente = GoogleTranslator(source="auto", target=destino)
         if ARQUIVO_CACHE.exists():
             self.cache = json.loads(ARQUIVO_CACHE.read_text(encoding="utf-8"))
         else:
             self.cache = {}
         self.novas = 0
+        self.falhas_seguidas = 0
+        self.desistiu = False
 
     def traduzir(self, texto, origem):
         if not texto or origem.split("-")[0] == self.destino.split("-")[0]:
             return texto
         chave = hashlib.sha1(f"{self.destino}|{texto}".encode("utf-8")).hexdigest()
-        if chave not in self.cache:
+        if chave in self.cache:
+            return self.cache[chave]
+        if self.desistiu:
+            return texto
+
+        for tentativa in range(TENTATIVAS):
+            time.sleep(PAUSA_ENTRE_PEDIDOS)
             try:
-                traducao = GoogleTranslator(source="auto", target=self.destino).translate(texto)
-            except Exception as erro:
-                print(f"  aviso: não consegui traduzir ({erro}); mantenho o original")
-                return texto
+                traducao = self.cliente.translate(texto)
+            except Exception:
+                time.sleep(2 ** (tentativa + 1))
+                continue
             self.cache[chave] = traducao or texto
             self.novas += 1
-        return self.cache[chave]
+            self.falhas_seguidas = 0
+            return self.cache[chave]
+
+        self.falhas_seguidas += 1
+        if self.falhas_seguidas >= FALHAS_PARA_DESISTIR:
+            print("  aviso: o Google Tradutor está recusando pedidos. O restante fica no idioma original.")
+            print("  Rode o jornal de novo daqui a alguns minutos: o que já foi traduzido fica guardado.")
+            self.desistiu = True
+        return texto
 
     def salvar(self):
         if self.novas:
