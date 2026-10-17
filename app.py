@@ -17,7 +17,8 @@ VALIDADE_CACHE = 15 * 60  # segundos que as notícias de um nicho ficam guardada
 LIMITE_RESULTADOS = 30
 
 _cache = {}
-_trava_cache = threading.Lock()
+_travas_nicho = {}
+_trava_travas = threading.Lock()
 _trava_traducao = threading.Lock()
 
 
@@ -25,15 +26,21 @@ def feeds_configurados():
     return json.loads(jornal.ARQUIVO_FEEDS.read_text(encoding="utf-8"))["nichos"]
 
 
+def _trava_do_nicho(nicho):
+    with _trava_travas:
+        return _travas_nicho.setdefault(nicho, threading.Lock())
+
+
 def noticias_do_nicho(nicho):
-    with _trava_cache:
+    # Uma trava por nicho: buscas simultâneas esperam a primeira terminar
+    # em vez de baixar os mesmos feeds de novo.
+    with _trava_do_nicho(nicho):
         guardado = _cache.get(nicho)
         if guardado and time.time() - guardado[0] < VALIDADE_CACHE:
             return guardado[1]
-    noticias = jornal.coletar([nicho], feeds_configurados(), limite=15)
-    with _trava_cache:
+        noticias = jornal.coletar([nicho], feeds_configurados(), limite=15)
         _cache[nicho] = (time.time(), noticias)
-    return noticias
+        return noticias
 
 
 def buscar(nicho, termo, idioma):

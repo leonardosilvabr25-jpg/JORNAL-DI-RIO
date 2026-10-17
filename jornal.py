@@ -145,6 +145,9 @@ TEMPO_LIMITE = 20  # segundos para uma conexão antes de desistir
 
 
 class Tradutor:
+    # Quando o Google recusa, todas as instâncias param de tentar por um tempo.
+    pausa_ate = 0.0
+
     def __init__(self, destino):
         self.destino = destino
         self.cliente = GoogleTranslator(source="auto", target=destino)
@@ -162,7 +165,7 @@ class Tradutor:
         chave = hashlib.sha1(f"{self.destino}|{texto}".encode("utf-8")).hexdigest()
         if chave in self.cache:
             return self.cache[chave]
-        if self.desistiu:
+        if self.desistiu or time.time() < Tradutor.pausa_ate:
             return texto
 
         for tentativa in range(TENTATIVAS):
@@ -182,8 +185,9 @@ class Tradutor:
         self.falhas_seguidas += 1
         if self.falhas_seguidas >= FALHAS_PARA_DESISTIR:
             print("  aviso: o Google Tradutor está recusando pedidos. O restante fica no idioma original.")
-            print("  Rode o jornal de novo daqui a alguns minutos: o que já foi traduzido fica guardado.")
+            print("  Tente de novo daqui a alguns minutos: o que já foi traduzido fica guardado.")
             self.desistiu = True
+            Tradutor.pausa_ate = time.time() + 300
         return texto
 
     def salvar(self):
