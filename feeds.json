@@ -1,0 +1,40 @@
+{
+  "nichos": {
+    "mundo": [
+      {"nome": "BBC News", "idioma": "en", "url": "https://feeds.bbci.co.uk/news/world/rss.xml"},
+      {"nome": "The New York Times", "idioma": "en", "url": "https://rss.nytimes.com/services/xml/rss/nyt/World.xml"},
+      {"nome": "Al Jazeera", "idioma": "en", "url": "https://www.aljazeera.com/xml/rss/all.xml"},
+      {"nome": "Folha de S.Paulo", "idioma": "pt", "url": "https://feeds.folha.uol.com.br/mundo/rss091.xml"},
+      {"nome": "El País", "idioma": "es", "url": "https://feeds.elpais.com/mrss-s/pages/ep/site/elpais.com/internacional/portada"},
+      {"nome": "Le Monde", "idioma": "fr", "url": "https://www.lemonde.fr/international/rss_full.xml"},
+      {"nome": "Der Spiegel", "idioma": "de", "url": "https://www.spiegel.de/international/index.rss"},
+      {"nome": "BBC Русский", "idioma": "ru", "url": "https://feeds.bbci.co.uk/russian/rss.xml"},
+      {"nome": "BBC 中文", "idioma": "zh-CN", "url": "https://feeds.bbci.co.uk/zhongwen/simp/rss.xml"},
+      {"nome": "NHK World", "idioma": "en", "url": "https://www3.nhk.or.jp/nhkworld/rss/world.xml"}
+    ],
+    "politica": [
+      {"nome": "BBC Politics", "idioma": "en", "url": "https://feeds.bbci.co.uk/news/politics/rss.xml"},
+      {"nome": "Folha Poder", "idioma": "pt", "url": "https://feeds.folha.uol.com.br/poder/rss091.xml"}
+    ],
+    "economia": [
+      {"nome": "BBC Business", "idioma": "en", "url": "https://feeds.bbci.co.uk/news/business/rss.xml"},
+      {"nome": "Exame", "idioma": "pt", "url": "https://exame.com/feed/"},
+      {"nome": "Expansión", "idioma": "es", "url": "https://e00-expansion.uecdn.es/rss/portada.xml"}
+    ],
+    "tecnologia": [
+      {"nome": "The Verge", "idioma": "en", "url": "https://www.theverge.com/rss/index.xml"},
+      {"nome": "TechCrunch", "idioma": "en", "url": "https://techcrunch.com/feed/"},
+      {"nome": "Canaltech", "idioma": "pt", "url": "https://canaltech.com.br/rss/"},
+      {"nome": "Heise", "idioma": "de", "url": "https://www.heise.de/rss/heise-atom.xml"}
+    ],
+    "ciencia": [
+      {"nome": "Nature", "idioma": "en", "url": "https://www.nature.com/nature.rss"},
+      {"nome": "Folha Ciência", "idioma": "pt", "url": "https://feeds.folha.uol.com.br/ciencia/rss091.xml"}
+    ],
+    "esportes": [
+      {"nome": "BBC Sport", "idioma": "en", "url": "https://feeds.bbci.co.uk/sport/rss.xml"},
+      {"nome": "Marca", "idioma": "es", "url": "https://e00-marca.uecdn.es/rss/portada.xml"},
+      {"nome": "GE Globo", "idioma": "pt", "url": "https://ge.globo.com/rss/ge/"}
+    ]
+  }
+}
