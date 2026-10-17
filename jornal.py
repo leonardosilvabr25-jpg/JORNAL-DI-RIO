@@ -6,6 +6,7 @@ import hashlib
 import html
 import json
 import re
+import socket
 import time
 import urllib.request
 import xml.etree.ElementTree as ET
@@ -139,6 +140,8 @@ def ler_feed(url):
 PAUSA_ENTRE_PEDIDOS = 0.3  # o Google aceita cerca de 5 pedidos por segundo
 TENTATIVAS = 3
 FALHAS_PARA_DESISTIR = 5
+SALVAR_A_CADA = 20  # traduções novas antes de gravar o cache no disco
+TEMPO_LIMITE = 20  # segundos para uma conexão antes de desistir
 
 
 class Tradutor:
@@ -172,6 +175,8 @@ class Tradutor:
             self.cache[chave] = traducao or texto
             self.novas += 1
             self.falhas_seguidas = 0
+            if self.novas % SALVAR_A_CADA == 0:
+                self.salvar()
             return self.cache[chave]
 
         self.falhas_seguidas += 1
@@ -260,6 +265,7 @@ def pagina(edicoes, nichos, gerado_em):
 
 
 def main():
+    socket.setdefaulttimeout(TEMPO_LIMITE)
     feeds = json.loads(ARQUIVO_FEEDS.read_text(encoding="utf-8"))["nichos"]
 
     parser = argparse.ArgumentParser(description="Gera um jornal diário a partir de feeds RSS.")
